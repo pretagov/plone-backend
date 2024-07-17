@@ -106,7 +106,7 @@ if [[ -n "${ADDONS}" ]]; then
   echo "THIS IS NOT MEANT TO BE USED IN PRODUCTION"
   echo "Read about it: https://6.docs.plone.org/install/containers/images/backend.html"
   echo "======================================================================================="
-  $VENVBIN/pip install ${ADDONS} ${PIP_PARAMS}
+  $VENVBIN/uv pip install ${ADDONS} ${PIP_PARAMS}
 fi
 
 # Handle development addons
@@ -122,7 +122,7 @@ if [[ -v DEVELOP ]]; then
       PACKAGES+=" --editable ${a}"
     done
   done <<< "$DEVELOP"
-  $VENVBIN/pip install ${PACKAGES} ${PIP_PARAMS}
+  $VENVBIN/uv pip install ${PACKAGES} ${PIP_PARAMS}
 fi
 
 if [[ "$1" == "start" ]]; then

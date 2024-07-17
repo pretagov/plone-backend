@@ -4,7 +4,7 @@ ARG PLONE_VERSION
 FROM plone/server-builder:${PLONE_VERSION} as builder
 
 # Remove Volto support from builder image
-RUN /app/bin/pip uninstall -y plone.volto
+RUN /app/bin/uv pip uninstall -y plone.volto
 
 FROM plone/server-prod-config:${PLONE_VERSION}
 

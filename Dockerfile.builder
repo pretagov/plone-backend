@@ -32,9 +32,10 @@ RUN <<EOT
     apt-get install -y --no-install-recommends $buildDeps
     busybox --install -s
     python -m venv /app
+    export VIRTUAL_ENV=/app
     curl -L -o /app/constraints.txt https://dist.plone.org/release/$PLONE_VERSION/constraints.txt
-    /app/bin/pip install -U pip wheel setuptools -c /app/constraints.txt
-    /app/bin/pip install Plone ${EXTRA_PACKAGES} -c /app/constraints.txt
+    /app/bin/pip install -U uv pip wheel setuptools -c /app/constraints.txt
+    /app/bin/uv pip install Plone ${EXTRA_PACKAGES} -c /app/constraints.txt
     bash -c 'mkdir -p /data/{filestorage,blobstorage,cache,logs}'
     /app/bin/python /compile_mo.py
     find /app \( -type f -a -name '*.pyc' -o -name '*.pyo' \) -exec rm -rf '{}' +
