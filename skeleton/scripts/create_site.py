@@ -78,6 +78,10 @@ if SETUP_CONTENT is not None:
 TIMEZONE = os.getenv("TIMEZONE")
 if TIMEZONE:
     answers["portal_timezone"] = TIMEZONE
+ADDITIONAL_PROFILES = os.getenv("PROFILES", os.getenv("ADDITIONAL_PROFILES", ""))
+additional_profiles = []
+if ADDITIONAL_PROFILES:
+    additional_profiles = [profile.strip() for profile in ADDITIONAL_PROFILES.split(",")]
 
 # Get the final site_id and distribution from the updated answers.
 site_id = answers["site_id"]
@@ -104,3 +108,10 @@ if site_id not in app.objectIds():
     transaction.commit()
     app._p_jar.sync()
     logger.info(" - Site created!")
+
+    if additional_profiles:
+        for profile_id in additional_profiles:
+            logger.info(f" - Importing profile {profile_id}")
+            site.portal_setup.runAllImportStepsFromProfile(f"profile-{profile_id}")
+        transaction.commit()
+        app._p_jar.sync()
