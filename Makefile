@@ -18,9 +18,9 @@ RESET=`tput sgr0`
 YELLOW=`tput setaf 3`
 
 # Current version
-MAIN_IMAGE_NAME=plone/plone-backend
-CLASSICUI_IMAGE_NAME=plone/plone-classicui
-BASE_IMAGE_NAME=plone/server
+MAIN_IMAGE_NAME=ghcr.io/pretagov/plone-backend
+CLASSICUI_IMAGE_NAME=ghcr.io/pretagov/plone-classicui
+BASE_IMAGE_NAME=ghcr.io/pretagov/server
 PLONE_VERSION=$$(cat version.txt)
 IMAGE_TAG=${PLONE_VERSION}
 NIGHTLY_IMAGE_TAG=nightly
@@ -33,8 +33,8 @@ ifndef LOG_LEVEL
 endif
 CURRENT_USER=$$(whoami)
 USER_INFO=$$(id -u ${CURRENT_USER}):$$(getent group ${CURRENT_USER}|cut -d: -f3)
-LINT=docker run --rm -e LOG_LEVEL="${LOG_LEVEL}" -v "${CURRENT_FOLDER}":/github/workspace plone/code-quality:${CODE_QUALITY_VERSION} check
-FORMAT=docker run --rm --user="${USER_INFO}" -e LOG_LEVEL="${LOG_LEVEL}" -v "${CURRENT_FOLDER}":/github/workspace plone/code-quality:${CODE_QUALITY_VERSION} format
+LINT=docker run --rm -e LOG_LEVEL="${LOG_LEVEL}" -v "${CURRENT_FOLDER}":/github/workspace ghcr.io/pretagov/code-quality:${CODE_QUALITY_VERSION} check
+FORMAT=docker run --rm --user="${USER_INFO}" -e LOG_LEVEL="${LOG_LEVEL}" -v "${CURRENT_FOLDER}":/github/workspace ghcr.io/pretagov/code-quality:${CODE_QUALITY_VERSION} format
 
 
 
