@@ -57,11 +57,11 @@ format: ## Format the codebase according to our standards
 lint: ## check code style
 	$(LINT)
 
-.PHONY: pg-build-images
+.PHONY: pg-build-images ## Push custom pretagov images
 pg-build-images: image-builder image-prod-config
 
 .PHONY: pg-push-images
-pg-push-images:
+pg-push-images: ## Push custom pretagov images
 	docker push ghcr.io/pretagov/server-builder:$(IMAGE_TAG)
 	docker push ghcr.io/pretagov/server-prod-config:$(IMAGE_TAG)
 
