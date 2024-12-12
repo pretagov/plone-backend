@@ -11,7 +11,7 @@ LABEL maintainer="Plone Community <dev@plone.org>" \
 RUN <<EOT
     set -e
     useradd --system -m -d /app -U -u 500 plone
-    runDeps="ca-certificates git libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 lynx netcat poppler-utils rsync wv busybox gosu libmagic1 make"
+    runDeps="ca-certificates git libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 lynx netcat poppler-utils rsync wv busybox gosu libmagic1 make curl"
     apt-get update
     apt-get -y upgrade
     apt-get install -y --no-install-recommends $runDeps
