@@ -14,9 +14,12 @@ fi
 USER="$(id -u)"
 
 # Create directories to be used by Plone
+[ -z ${SET_PERMISSIONS+x} ] && export SET_PERMISSIONS=false
 mkdir -p /data/filestorage /data/blobstorage /data/cache /data/log $CLIENT_HOME
 if [ "$USER" = '0' ]; then
-  find /data -not -user plone -exec chown plone:plone {} \+
+  if [ "${SET_PERMISSIONS}" = 'true' ]; then
+    find /data -not -user plone -exec chown plone:plone {} \+
+  fi
   sudo="gosu plone"
 else
   sudo=""
