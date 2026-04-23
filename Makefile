@@ -20,7 +20,7 @@ YELLOW=`tput setaf 3`
 # Current version
 MAIN_IMAGE_NAME=ghcr.io/pretagov/plone-backend
 CLASSICUI_IMAGE_NAME=ghcr.io/pretagov/plone-classicui
-BASE_IMAGE_NAME=ghcr.io/pretagov/server
+BASE_IMAGE_NAME?=registry.fly.io/pguk-prod-plone
 PLONE_VERSION=$$(cat version.txt)
 IMAGE_TAG=${PLONE_VERSION}
 NIGHTLY_IMAGE_TAG=nightly
@@ -63,8 +63,8 @@ pg-build-images: image-builder image-prod-config
 
 .PHONY: pg-push-images
 pg-push-images: ## Push custom pretagov images
-	docker push ghcr.io/pretagov/server-builder:$(IMAGE_TAG)
-	docker push ghcr.io/pretagov/server-prod-config:$(IMAGE_TAG)
+	docker push $(BASE_IMAGE_NAME):server-builder-$(IMAGE_TAG)
+	docker push $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG)
 
 # Build image
 .PHONY: show-image
@@ -76,18 +76,18 @@ show-image: ## Print Version
 
 .PHONY: image-builder
 image-builder:  ## Build Base Image
-	@echo "Building $(BASE_IMAGE_NAME)-builder:$(IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME)-builder:$(IMAGE_TAG) -f Dockerfile.builder --load
+	@echo "Building $(BASE_IMAGE_NAME):builder-$(IMAGE_TAG)"
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME):server-builder-$(IMAGE_TAG) -f Dockerfile.builder --load
 
 .PHONY: image-dev
 image-dev:  ## Build Dev Image
-	@echo "Building $(BASE_IMAGE_NAME)-dev:$(IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME)-dev:$(IMAGE_TAG) -f Dockerfile.dev --load
+	@echo "Building $(BASE_IMAGE_NAME):dev-$(IMAGE_TAG)"
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME):dev-$(IMAGE_TAG) -f Dockerfile.dev --load
 
 .PHONY: image-prod-config
 image-prod-config:  ## Build Prod Image
-	@echo "Building $(BASE_IMAGE_NAME)-prod-config:$(IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME)-prod-config:$(IMAGE_TAG) -f Dockerfile.prod --load
+	@echo "Building $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG)"
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG) -f Dockerfile.prod --load
 
 .PHONY: image-classicui
 image-classicui:  ## Build Classic UI
@@ -111,11 +111,11 @@ image-nightly:  ## Build Docker Image Nightly
 
 .PHONY: build-images
 build-images:  ## Build Images
-	@echo "Building $(BASE_IMAGE_NAME)-(builder|dev|prod):$(IMAGE_TAG) images"
+	@echo "Building $(BASE_IMAGE_NAME)-(builder|prod):$(IMAGE_TAG) images"
 	$(MAKE) image-builder
-	$(MAKE) image-dev
+	#$(MAKE) image-dev
 	$(MAKE) image-prod-config
-	$(MAKE) image-acceptance
+	#$(MAKE) image-acceptance
 	@echo "Building $(MAIN_IMAGE_NAME):$(IMAGE_TAG)"
 	$(MAKE) image-main
 	@echo "Building $(CLASSICUI_IMAGE_NAME):$(IMAGE_TAG)"
