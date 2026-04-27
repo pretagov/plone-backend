@@ -21,8 +21,8 @@ YELLOW=`tput setaf 3`
 MAIN_IMAGE_NAME=ghcr.io/pretagov/plone-backend
 CLASSICUI_IMAGE_NAME=ghcr.io/pretagov/plone-classicui
 BASE_IMAGE_NAME?=registry.fly.io/pguk-prod-plone
-PLONE_VERSION=$$(cat version.txt)
-IMAGE_TAG=${PLONE_VERSION}
+PLONE_VERSION?=$$(cat version.txt)
+IMAGE_TAG?=${PLONE_VERSION}
 NIGHTLY_IMAGE_TAG=nightly
 
 # Code Quality
