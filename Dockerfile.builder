@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
+# Debian suite for the python base image. bullseye left security support in
+# August 2026; bookworm is supported until June 2028. Keep in sync with
+# DEBIAN_SUITE in the Makefile — it is part of the published image tag.
+ARG DEBIAN_SUITE=bookworm
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim-bullseye
+FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE}
 
 ARG PLONE_VERSION
 
@@ -28,7 +32,7 @@ RUN <<EOT
     set -e
     apt-get update
     apt-get -y upgrade
-    buildDeps="build-essential busybox ca-certificates curl git gosu libbz2-dev libffi-dev libjpeg62-turbo-dev libmagic1 libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev"
+    buildDeps="build-essential busybox ca-certificates curl git gosu libbz2-dev libffi-dev libjpeg62-turbo-dev libmagic1 libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff-dev libxml2-dev libxslt1-dev wget zlib1g-dev"
     apt-get install -y --no-install-recommends $buildDeps
     busybox --install -s
     python -m venv /app

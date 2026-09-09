@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
+# See Dockerfile.builder for why bookworm — both stages must use the same suite.
+ARG DEBIAN_SUITE=bookworm
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim-bullseye
+FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE}
 
 LABEL maintainer="Plone Community <dev@plone.org>" \
       org.label-schema.name="server-prod-conf" \
@@ -11,7 +13,7 @@ LABEL maintainer="Plone Community <dev@plone.org>" \
 RUN <<EOT
     set -e
     useradd --system -m -d /app -U -u 500 plone
-    runDeps="ca-certificates git libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 lynx netcat poppler-utils rsync wv busybox gosu libmagic1 make curl"
+    runDeps="ca-certificates git libjpeg62-turbo libopenjp2-7 libpq5 libtiff6 libxml2 libxslt1.1 lynx netcat-openbsd poppler-utils rsync wv busybox gosu libmagic1 make curl"
     apt-get update
     apt-get -y upgrade
     apt-get install -y --no-install-recommends $runDeps
