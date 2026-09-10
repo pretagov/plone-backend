@@ -22,7 +22,14 @@ MAIN_IMAGE_NAME=ghcr.io/pretagov/plone-backend
 CLASSICUI_IMAGE_NAME=ghcr.io/pretagov/plone-classicui
 BASE_IMAGE_NAME?=registry.fly.io/pguk-prod-plone
 PLONE_VERSION?=$$(cat version.txt)
+# Debian suite of the python base image (see Dockerfile.builder/Dockerfile.prod).
+DEBIAN_SUITE?=bookworm
 IMAGE_TAG?=${PLONE_VERSION}
+# Tag of the pretagov base images (server-builder / server-prod-config). The
+# suite is part of it so a suite change produces a new, distinct image rather
+# than silently replacing the one prod was built from. Must match the ARG
+# PLONE_SERVER_BUILDER_VERSION default in the consuming backend/Dockerfile.
+BASE_IMAGE_TAG?=${PLONE_VERSION}-${DEBIAN_SUITE}
 NIGHTLY_IMAGE_TAG=nightly
 
 # Code Quality
@@ -63,21 +70,22 @@ pg-build-images: image-builder image-prod-config
 
 .PHONY: pg-push-images
 pg-push-images: ## Push custom pretagov images
-	docker push $(BASE_IMAGE_NAME):server-builder-$(IMAGE_TAG)
-	docker push $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG)
+	docker push $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG)
+	docker push $(BASE_IMAGE_NAME):server-prod-config-$(BASE_IMAGE_TAG)
 
 # Build image
 .PHONY: show-image
 show-image: ## Print Version
 	@echo "$(MAIN_IMAGE_NAME):$(IMAGE_TAG)"
 	@echo "$(MAIN_IMAGE_NAME):$(NIGHTLY_IMAGE_TAG)"
-	@echo "$(BASE_IMAGE_NAME)-(builder|dev|prod-config|acceptance):$(IMAGE_TAG)"
+	@echo "$(BASE_IMAGE_NAME):server-(builder|prod-config)-$(BASE_IMAGE_TAG)"
+	@echo "$(BASE_IMAGE_NAME)-(dev|acceptance):$(IMAGE_TAG)"
 	@echo "$(CLASSICUI_IMAGE_NAME):$(IMAGE_TAG)"
 
 .PHONY: image-builder
 image-builder:  ## Build Base Image
-	@echo "Building $(BASE_IMAGE_NAME):builder-$(IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME):server-builder-$(IMAGE_TAG) -f Dockerfile.builder --load
+	@echo "Building $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG)"
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} --build-arg DEBIAN_SUITE=${DEBIAN_SUITE} -t $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG) -f Dockerfile.builder --load
 
 .PHONY: image-dev
 image-dev:  ## Build Dev Image
@@ -86,8 +94,8 @@ image-dev:  ## Build Dev Image
 
 .PHONY: image-prod-config
 image-prod-config:  ## Build Prod Image
-	@echo "Building $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} -t $(BASE_IMAGE_NAME):server-prod-config-$(IMAGE_TAG) -f Dockerfile.prod --load
+	@echo "Building $(BASE_IMAGE_NAME):server-prod-config-$(BASE_IMAGE_TAG)"
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} --build-arg DEBIAN_SUITE=${DEBIAN_SUITE} -t $(BASE_IMAGE_NAME):server-prod-config-$(BASE_IMAGE_TAG) -f Dockerfile.prod --load
 
 .PHONY: image-classicui
 image-classicui:  ## Build Classic UI
