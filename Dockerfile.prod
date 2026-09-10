@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
+# See Dockerfile.builder for why bookworm — both stages must use the same suite.
+ARG DEBIAN_SUITE=bookworm
 ARG PYTHON_VERSION=3.12
 ARG PLONE_VERSION
-FROM python:${PYTHON_VERSION}-slim-bookworm
+FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE}
 
 ARG PYTHON_VERSION
 ARG PLONE_VERSION

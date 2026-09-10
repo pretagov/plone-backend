@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
+ARG DEBIAN_SUITE=bookworm
 ARG PYTHON_VERSION=3.14
-FROM python:${PYTHON_VERSION}-slim-bookworm AS base
+FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE} AS base
 FROM base AS builder
 
 ENV PIP_PARAMS=""

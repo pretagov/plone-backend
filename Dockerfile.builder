@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
+# Debian suite for the python base image. bullseye left security support in
+# August 2026; bookworm is supported until June 2028. Keep in sync with
+# DEBIAN_SUITE in the Makefile — it is part of the published image tag.
+ARG DEBIAN_SUITE=bookworm
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim-bookworm
+FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE}
 
 ARG PLONE_VERSION
 
