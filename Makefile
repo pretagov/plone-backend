@@ -32,6 +32,14 @@ IMAGE_TAG?=${PLONE_VERSION}
 BASE_IMAGE_TAG?=${PLONE_VERSION}-${DEBIAN_SUITE}
 NIGHTLY_IMAGE_TAG=nightly
 
+# Per-region pretagov base images. Each region pulls its base images from its
+# own Fly registry and may pin a different Plone version; the version must
+# match ARG PLONE_VERSION in that project's backend Dockerfile.
+UK_BASE_IMAGE_NAME=registry.fly.io/pguk-prod-plone
+UK_PLONE_VERSION=$(shell cat version.txt)
+AU_BASE_IMAGE_NAME=registry.fly.io/nsw-dds-prod-plone
+AU_PLONE_VERSION=6.0.15
+
 # Code Quality
 CURRENT_FOLDER=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 CODE_QUALITY_VERSION=2.1.0
@@ -65,11 +73,33 @@ lint: ## check code style
 	$(LINT)
 
 .PHONY: pg-build-images
-pg-build-images: ## Build custom pretagov images
-pg-build-images: image-builder image-prod-config
+pg-build-images: ## Build custom pretagov images for all regions (UK and AU)
+pg-build-images: pg-build-uk-images pg-build-au-images
 
 .PHONY: pg-push-images
-pg-push-images: ## Push custom pretagov images
+pg-push-images: ## Push custom pretagov images for all regions (UK and AU)
+pg-push-images: pg-push-uk-images pg-push-au-images
+
+.PHONY: pg-build-uk-images
+pg-build-uk-images: ## Build custom pretagov images for the UK registry
+	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION)
+
+.PHONY: pg-push-uk-images
+pg-push-uk-images: ## Push custom pretagov images to the UK registry
+	$(MAKE) push-base-images BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION)
+
+.PHONY: pg-build-au-images
+pg-build-au-images: ## Build custom pretagov images for the AU registry
+	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION)
+
+.PHONY: pg-push-au-images
+pg-push-au-images: ## Push custom pretagov images to the AU registry
+	$(MAKE) push-base-images BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION)
+
+# Pushes the base images for the BASE_IMAGE_NAME / BASE_IMAGE_TAG in effect;
+# use the pg-push-*-images targets above rather than calling this directly.
+.PHONY: push-base-images
+push-base-images:
 	docker push $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG)
 	docker push $(BASE_IMAGE_NAME):server-prod-config-$(BASE_IMAGE_TAG)
 
