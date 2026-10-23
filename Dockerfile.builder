@@ -1,14 +1,19 @@
 # syntax=docker/dockerfile:1
-# Debian suite for the python base image. bullseye left security support in
-# August 2026; bookworm is supported until June 2028. Keep in sync with
-# DEBIAN_SUITE in the Makefile — it is part of the published image tag.
-ARG DEBIAN_SUITE=bookworm
+# Debian suite for the python base image, passed per region by the Makefile
+# (UK_DEBIAN_SUITE / AU_DEBIAN_SUITE) and part of the published image tag.
+# trixie is the current stable; bookworm still builds. Package lists below must
+# work on both: `file` pulls libmagic1 on bookworm and libmagic1t64 on trixie.
+ARG DEBIAN_SUITE=trixie
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim-${DEBIAN_SUITE}
 
 ARG PLONE_VERSION
 
-ENV EXTRA_PACKAGES="relstorage==3.5.0 psycopg2==2.9.5 python-ldap==3.4.3 ZEO"
+# Database driver pins installed alongside Plone, passed per region by the
+# Makefile (UK_EXTRA_PACKAGES / AU_EXTRA_PACKAGES). relstorage 3.5.0 does not
+# compile with GCC 13+ (trixie has 14); 4.x builds and ships cp312 wheels.
+ARG EXTRA_PACKAGES="relstorage==4.1.1 psycopg2==2.9.10 python-ldap==3.4.4 ZEO"
+ENV EXTRA_PACKAGES=${EXTRA_PACKAGES}
 
 
 LABEL maintainer="Plone Community <dev@plone.org>" \
@@ -32,7 +37,7 @@ RUN <<EOT
     set -e
     apt-get update
     apt-get -y upgrade
-    buildDeps="build-essential busybox ca-certificates curl git gosu libbz2-dev libffi-dev libjpeg62-turbo-dev libmagic1 libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff-dev libxml2-dev libxslt1-dev wget zlib1g-dev"
+    buildDeps="build-essential busybox ca-certificates curl git gosu libbz2-dev libffi-dev libjpeg62-turbo-dev file libldap2-dev libopenjp2-7-dev libpq-dev libsasl2-dev libssl-dev libtiff-dev libxml2-dev libxslt1-dev wget zlib1g-dev"
     apt-get install -y --no-install-recommends $buildDeps
     busybox --install -s
     python -m venv /app

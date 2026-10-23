@@ -23,7 +23,9 @@ CLASSICUI_IMAGE_NAME=ghcr.io/pretagov/plone-classicui
 BASE_IMAGE_NAME?=registry.fly.io/pguk-prod-plone
 PLONE_VERSION?=$$(cat version.txt)
 # Debian suite of the python base image (see Dockerfile.builder/Dockerfile.prod).
-DEBIAN_SUITE?=bookworm
+DEBIAN_SUITE?=trixie
+# Database drivers installed with Plone in the builder image.
+EXTRA_PACKAGES?=relstorage==4.1.1 psycopg2==2.9.10 python-ldap==3.4.4 ZEO
 IMAGE_TAG?=${PLONE_VERSION}
 # Tag of the pretagov base images (server-builder / server-prod-config). The
 # suite is part of it so a suite change produces a new, distinct image rather
@@ -33,12 +35,16 @@ BASE_IMAGE_TAG?=${PLONE_VERSION}-${DEBIAN_SUITE}
 NIGHTLY_IMAGE_TAG=nightly
 
 # Per-region pretagov base images. Each region pulls its base images from its
-# own Fly registry and may pin a different Plone version; the version must
-# match ARG PLONE_VERSION in that project's backend Dockerfile.
+# own Fly registry and may pin a different Plone version and Debian suite;
+# both must match the base image tag that project's backend Dockerfile uses.
 UK_BASE_IMAGE_NAME=registry.fly.io/pguk-prod-plone
 UK_PLONE_VERSION=$(shell cat version.txt)
+UK_DEBIAN_SUITE=trixie
+UK_EXTRA_PACKAGES=relstorage==4.1.1 psycopg2==2.9.10 python-ldap==3.4.4 ZEO
 AU_BASE_IMAGE_NAME=registry.fly.io/nsw-dds-prod-plone
 AU_PLONE_VERSION=6.0.15
+AU_DEBIAN_SUITE=bookworm
+AU_EXTRA_PACKAGES=relstorage==3.5.0 psycopg2==2.9.5 python-ldap==3.4.3 ZEO
 
 # Code Quality
 CURRENT_FOLDER=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -82,19 +88,19 @@ pg-push-images: pg-push-uk-images pg-push-au-images
 
 .PHONY: pg-build-uk-images
 pg-build-uk-images: ## Build custom pretagov images for the UK registry
-	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION)
+	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION) DEBIAN_SUITE=$(UK_DEBIAN_SUITE) EXTRA_PACKAGES="$(UK_EXTRA_PACKAGES)"
 
 .PHONY: pg-push-uk-images
 pg-push-uk-images: ## Push custom pretagov images to the UK registry
-	$(MAKE) push-base-images BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION)
+	$(MAKE) push-base-images BASE_IMAGE_NAME=$(UK_BASE_IMAGE_NAME) PLONE_VERSION=$(UK_PLONE_VERSION) DEBIAN_SUITE=$(UK_DEBIAN_SUITE)
 
 .PHONY: pg-build-au-images
 pg-build-au-images: ## Build custom pretagov images for the AU registry
-	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION)
+	$(MAKE) image-builder image-prod-config BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION) DEBIAN_SUITE=$(AU_DEBIAN_SUITE) EXTRA_PACKAGES="$(AU_EXTRA_PACKAGES)"
 
 .PHONY: pg-push-au-images
 pg-push-au-images: ## Push custom pretagov images to the AU registry
-	$(MAKE) push-base-images BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION)
+	$(MAKE) push-base-images BASE_IMAGE_NAME=$(AU_BASE_IMAGE_NAME) PLONE_VERSION=$(AU_PLONE_VERSION) DEBIAN_SUITE=$(AU_DEBIAN_SUITE)
 
 # Pushes the base images for the BASE_IMAGE_NAME / BASE_IMAGE_TAG in effect;
 # use the pg-push-*-images targets above rather than calling this directly.
@@ -115,7 +121,7 @@ show-image: ## Print Version
 .PHONY: image-builder
 image-builder:  ## Build Base Image
 	@echo "Building $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG)"
-	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} --build-arg DEBIAN_SUITE=${DEBIAN_SUITE} -t $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG) -f Dockerfile.builder --load
+	@docker buildx build . --build-arg PLONE_VERSION=${PLONE_VERSION} --build-arg DEBIAN_SUITE=${DEBIAN_SUITE} --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(BASE_IMAGE_NAME):server-builder-$(BASE_IMAGE_TAG) -f Dockerfile.builder --load
 
 .PHONY: image-dev
 image-dev:  ## Build Dev Image
