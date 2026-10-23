@@ -24,7 +24,7 @@ BASE_IMAGE_NAME?=registry.fly.io/pguk-prod-plone
 PLONE_VERSION?=$$(cat version.txt)
 PYTHON_VERSION?=3.12
 # Debian suite of the python base image (see Dockerfile.builder/Dockerfile.prod).
-DEBIAN_SUITE?=bookworm
+DEBIAN_SUITE?=trixie
 IMAGE_TAG?=${PLONE_VERSION}
 # Tag of the pretagov base images (server-builder / server-prod-config). The
 # suite is part of it so a suite change produces a new, distinct image rather
